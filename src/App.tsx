@@ -268,7 +268,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 pb-12">
       {/* Print View (Hidden on Screen) */}
-      <div className="print-only p-4 space-y-16">
+      <div className="print-only p-4 space-y-16 font-serif">
         {donors.map((donor) => (
           <div key={donor.id} className="break-inside-avoid">
             <div className="text-center mb-4">
