@@ -271,7 +271,8 @@ export default function App() {
       <div className="print-only p-4 space-y-16">
         {donors.map((donor) => (
           <div key={donor.id} className="break-inside-avoid">
-            <div className="text-center mb-1">
+            <div className="text-center mb-4">
+              <div className="text-2xl mb-2 font-serif">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
               <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
               <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">{mosqueInfo.subtitle}</h2>
               <h2 className="text-[1.3rem] font-bold uppercase leading-tight text-[#5c4033]" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.2)' }}>{mosqueInfo.name}</h2>
