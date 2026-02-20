@@ -127,6 +127,24 @@ export default function App() {
     fileInputRef.current?.click();
   };
 
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, '0');
+      const month = parseInt(parts[1]);
+      const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+      const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      if (month >= 1 && month <= 12) {
+        return `${day} ${months[month - 1]} ${year}`;
+      }
+    }
+    return dateStr;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -137,16 +155,15 @@ export default function App() {
       const lines = text.split('\n');
       const newDonors: Donor[] = [];
       
-      // Basic CSV parsing (assuming: No, Name, Date1, Date2, Type)
       lines.slice(1).forEach((line) => {
         const parts = line.split(',').map(p => p.trim());
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[1]) {
           newDonors.push({
             id: Math.random().toString(36).substr(2, 9),
             no: parseInt(parts[0]) || (donors.length + newDonors.length + 1),
-            name: parts[1] || 'Unknown',
-            date: parts[2] || '',
-            date2: parts[3] || '',
+            name: parts[1].toUpperCase(),
+            date: formatDateString(parts[2]),
+            date2: formatDateString(parts[3]),
             contributionType: parts[4] || 'Makanan / Uang'
           });
         }
@@ -158,6 +175,7 @@ export default function App() {
       }
     };
     reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSaveDonor = () => {
@@ -168,10 +186,11 @@ export default function App() {
   };
 
   const downloadTemplate = () => {
-    const headers = ['No', 'Nama Donatur', 'Tanggal 1', 'Tanggal 2', 'Jenis Sumbangan'];
+    const headers = ['No', 'Nama', 'Tanggal Pertama', 'Tanggal Kedua', 'Jenis Sumbangan'];
     const sampleData = [
-      ['7', 'ARIANTO/ATUT', '19 Februari 2026', '06 Maret 2026', 'Makanan / Uang'],
-      ['8', 'SAPA', '20 Februari 2026', '06 Maret 2026', 'Makanan / Uang']
+      ['1', 'SYAMSIA', '19/02/26', '06/03/26', 'Makanan / Uang'],
+      ['2', 'SINTA/NI', '19/02/26', '06/03/26', 'Makanan / Uang'],
+      ['3', 'ANGGIN', '19/02/26', '06/03/26', 'Makanan / Uang']
     ];
     const csvContent = [headers, ...sampleData].map(e => e.join(",")).join("\n");
     
@@ -179,7 +198,7 @@ export default function App() {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
-    link.setAttribute("download", "template_jadwal_tajil.csv");
+    link.setAttribute("download", "template_input_tajil.csv");
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
