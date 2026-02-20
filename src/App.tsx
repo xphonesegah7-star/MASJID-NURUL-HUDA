@@ -167,6 +167,25 @@ export default function App() {
     }
   };
 
+  const downloadTemplate = () => {
+    const headers = ['No', 'Nama Donatur', 'Tanggal 1', 'Tanggal 2', 'Jenis Sumbangan'];
+    const sampleData = [
+      ['7', 'ARIANTO/ATUT', '19 Februari 2026', '06 Maret 2026', 'Makanan / Uang'],
+      ['8', 'SAPA', '20 Februari 2026', '06 Maret 2026', 'Makanan / Uang']
+    ];
+    const csvContent = [headers, ...sampleData].map(e => e.join(",")).join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "template_jadwal_tajil.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const exportToCSV = () => {
     const headers = ['No', 'Nama Donatur', 'Tanggal 1', 'Tanggal 2', 'Jenis Sumbangan'];
     const rows = donors.map(d => [d.no, d.name, d.date, d.date2 || '', d.contributionType]);
@@ -560,10 +579,18 @@ export default function App() {
               />
               <button 
                 onClick={handleUploadClick}
+                title="Upload CSV Data"
                 className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 <Upload className="w-5 h-5 text-blue-500" />
                 UPLOAD
+              </button>
+              <button 
+                onClick={downloadTemplate}
+                title="Download Template CSV"
+                className="p-3 bg-blue-50 text-blue-500 rounded-2xl hover:bg-blue-100 transition-colors"
+              >
+                <FileText className="w-5 h-5" />
               </button>
               <button 
                 onClick={handleAddDonor}
