@@ -42,10 +42,30 @@ export default function App() {
 
   // State for Donors
   const [donors, setDonors] = useState<Donor[]>([
-    { id: '1', no: 1, name: 'H. Ahmad Subarjo', date: '1 Ramadhan 1447' },
-    { id: '2', no: 2, name: 'Hj. Siti Aminah', date: '2 Ramadhan 1447' },
-    { id: '3', no: 3, name: 'Keluarga Bpk. Mulyono', date: '3 Ramadhan 1447' },
-    { id: '4', no: 4, name: 'Ibu Fatimah', date: '4 Ramadhan 1447' },
+    { 
+      id: '1', 
+      no: 7, 
+      name: 'ARIANTO/ATUT', 
+      date: '19 Februari 2026', 
+      date2: '06 Maret 2026', 
+      contributionType: 'Makanan / Uang' 
+    },
+    { 
+      id: '2', 
+      no: 8, 
+      name: 'SAPA', 
+      date: '20 Februari 2026', 
+      date2: '06 Maret 2026', 
+      contributionType: 'Makanan / Uang' 
+    },
+    { 
+      id: '3', 
+      no: 9, 
+      name: 'BAHAR', 
+      date: '20 Februari 2026', 
+      date2: '06 Maret 2026', 
+      contributionType: 'Makanan / Uang' 
+    },
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,7 +83,9 @@ export default function App() {
       id: newId, 
       no: donors.length + 1, 
       name: 'Donatur Baru', 
-      date: 'Tanggal Baru' 
+      date: 'Tanggal Baru',
+      date2: '',
+      contributionType: 'Makanan / Uang'
     }]);
   };
 
@@ -100,30 +122,37 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 pb-12">
       {/* Print View (Hidden on Screen) */}
-      <div className="print-only p-8">
-        <div className="text-center border-b-2 border-double border-slate-800 pb-4 mb-8">
-          <h1 className="text-2xl font-bold uppercase">{mosqueInfo.name}</h1>
-          <p className="text-lg font-medium">{mosqueInfo.year}</p>
-          <p className="text-sm uppercase tracking-widest mt-1">{mosqueInfo.subtitle}</p>
-        </div>
-        <table className="w-full border-collapse border border-slate-800">
-          <thead>
-            <tr>
-              <th className="border border-slate-800 p-2 text-center w-12">No</th>
-              <th className="border border-slate-800 p-2 text-left">Nama Donatur</th>
-              <th className="border border-slate-800 p-2 text-left">Jadwal Tanggal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {donors.map((donor, index) => (
-              <tr key={donor.id}>
-                <td className="border border-slate-800 p-2 text-center">{index + 1}</td>
-                <td className="border border-slate-800 p-2">{donor.name}</td>
-                <td className="border border-slate-800 p-2">{donor.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="print-only p-4 space-y-12">
+        {donors.map((donor) => (
+          <div key={donor.id} className="space-y-2">
+            <div className="text-center">
+              <h2 className="text-xl font-bold uppercase">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
+              <h2 className="text-xl font-bold uppercase">{mosqueInfo.subtitle}</h2>
+              <h2 className="text-xl font-bold uppercase text-slate-700">{mosqueInfo.name}</h2>
+            </div>
+            <table className="w-full border-collapse border border-black text-center font-serif">
+              <thead>
+                <tr>
+                  <th className="border border-black p-2 w-12">No</th>
+                  <th className="border border-black p-2">NAMA</th>
+                  <th className="border border-black p-2">TANGGAL</th>
+                  <th className="border border-black p-2">JENIS SUMBANGAN</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border border-black p-4">{donor.no}</td>
+                  <td className="border border-black p-4 font-bold">{donor.name}</td>
+                  <td className="border border-black p-4">
+                    <div>{donor.date}</div>
+                    {donor.date2 && <div>{donor.date2}</div>}
+                  </td>
+                  <td className="border border-black p-4">{donor.contributionType}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ))}
       </div>
 
       {/* Header */}
@@ -155,7 +184,16 @@ export default function App() {
                 className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl"
               >
                 <h3 className="text-xl font-bold mb-6">Ubah Data Donatur</h3>
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">No Urut</label>
+                    <input 
+                      type="number" 
+                      value={editingDonor.no}
+                      onChange={(e) => setEditingDonor({...editingDonor, no: parseInt(e.target.value)})}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981]"
+                    />
+                  </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Nama Donatur</label>
                     <input 
@@ -166,11 +204,29 @@ export default function App() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jadwal Tanggal</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jadwal Tanggal (Baris 1)</label>
                     <input 
                       type="text" 
                       value={editingDonor.date}
                       onChange={(e) => setEditingDonor({...editingDonor, date: e.target.value})}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jadwal Tanggal (Baris 2)</label>
+                    <input 
+                      type="text" 
+                      value={editingDonor.date2 || ''}
+                      onChange={(e) => setEditingDonor({...editingDonor, date2: e.target.value})}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Jenis Sumbangan</label>
+                    <input 
+                      type="text" 
+                      value={editingDonor.contributionType}
+                      onChange={(e) => setEditingDonor({...editingDonor, contributionType: e.target.value})}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#10b981]"
                     />
                   </div>
@@ -436,12 +492,13 @@ export default function App() {
                   <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">No</th>
                   <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Nama Donatur</th>
                   <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Jadwal Tanggal</th>
+                  <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Jenis Sumbangan</th>
                   <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Opsi</th>
                 </tr>
               </thead>
               <tbody>
                 <AnimatePresence mode="popLayout">
-                  {filteredDonors.map((donor, index) => (
+                  {filteredDonors.map((donor) => (
                     <motion.tr 
                       key={donor.id}
                       layout
@@ -450,9 +507,13 @@ export default function App() {
                       exit={{ opacity: 0, x: -20 }}
                       className="group hover:bg-slate-50/80 transition-colors border-b border-slate-50 last:border-0"
                     >
-                      <td className="px-8 py-5 font-bold text-slate-400">{index + 1}</td>
+                      <td className="px-8 py-5 font-bold text-slate-400">{donor.no}</td>
                       <td className="px-8 py-5 font-bold text-slate-600">{donor.name}</td>
-                      <td className="px-8 py-5 font-bold text-slate-500">{donor.date}</td>
+                      <td className="px-8 py-5 font-bold text-slate-500">
+                        <div>{donor.date}</div>
+                        {donor.date2 && <div className="text-xs opacity-60">{donor.date2}</div>}
+                      </td>
+                      <td className="px-8 py-5 font-bold text-slate-500">{donor.contributionType}</td>
                       <td className="px-8 py-5">
                         <div className="flex items-center justify-end gap-2">
                           <button 

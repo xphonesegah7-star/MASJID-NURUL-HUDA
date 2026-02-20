@@ -19,4 +19,6 @@ export interface Donor {
   no: number;
   name: string;
   date: string;
+  date2?: string;
+  contributionType: string;
 }
