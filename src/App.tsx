@@ -130,6 +130,12 @@ export default function App() {
 
   const formatDateString = (dateStr: string) => {
     if (!dateStr) return '';
+    
+    // If it's already in a long format (e.g. from manual input or previous save)
+    if (dateStr.includes('Januari') || dateStr.includes('Februari') || dateStr.includes('Maret')) {
+      return dateStr;
+    }
+
     const parts = dateStr.split('/');
     if (parts.length === 3) {
       const day = parts[0].padStart(2, '0');
@@ -156,7 +162,8 @@ export default function App() {
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      // Use raw: false to get formatted strings from Excel
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false }) as any[][];
       
       const newDonors: Donor[] = [];
       
@@ -283,7 +290,18 @@ export default function App() {
                   <td className="border border-black p-3 align-middle">{donor.no}</td>
                   <td className="border border-black p-3 font-bold align-middle uppercase">{donor.name}</td>
                   <td className="border border-black p-3 align-middle">
-                    <div className="leading-tight">{donor.date}</div>
+                    {(() => {
+                      const dateParts = donor.date.split(' ');
+                      if (dateParts.length === 3) {
+                        return (
+                          <>
+                            <div className="leading-tight">{dateParts[0]} {dateParts[1]}</div>
+                            <div className="leading-tight">{dateParts[2]}</div>
+                          </>
+                        );
+                      }
+                      return <div className="leading-tight">{donor.date}</div>;
+                    })()}
                     {donor.date2 && <div className="leading-tight">{donor.date2}</div>}
                   </td>
                   <td className="border border-black p-3 align-middle">{donor.contributionType}</td>
