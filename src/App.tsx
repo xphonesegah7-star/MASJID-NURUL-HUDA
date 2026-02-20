@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import * as XLSX from 'xlsx';
 import { 
   FileText, 
   Printer, 
@@ -151,30 +152,33 @@ export default function App() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const lines = text.split('\n');
+      const data = new Uint8Array(event.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+      
       const newDonors: Donor[] = [];
       
-      lines.slice(1).forEach((line) => {
-        const parts = line.split(',').map(p => p.trim());
-        if (parts.length >= 2 && parts[1]) {
+      jsonData.slice(1).forEach((row) => {
+        if (row.length >= 2 && row[1]) {
           newDonors.push({
             id: Math.random().toString(36).substr(2, 9),
-            no: parseInt(parts[0]) || (donors.length + newDonors.length + 1),
-            name: parts[1].toUpperCase(),
-            date: formatDateString(parts[2]),
-            date2: formatDateString(parts[3]),
-            contributionType: parts[4] || 'Makanan / Uang'
+            no: parseInt(row[0]) || (donors.length + newDonors.length + 1),
+            name: String(row[1]).toUpperCase(),
+            date: formatDateString(String(row[2] || '')),
+            date2: formatDateString(String(row[3] || '')),
+            contributionType: String(row[4] || 'Makanan / Uang')
           });
         }
       });
 
       if (newDonors.length > 0) {
         setDonors([...donors, ...newDonors]);
-        alert(`Berhasil mengimpor ${newDonors.length} data donatur.`);
+        alert(`Berhasil mengimpor ${newDonors.length} data donatur dari Excel.`);
       }
     };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -192,33 +196,21 @@ export default function App() {
       ['2', 'SINTA/NI', '19/02/26', '06/03/26', 'Makanan / Uang'],
       ['3', 'ANGGIN', '19/02/26', '06/03/26', 'Makanan / Uang']
     ];
-    const csvContent = [headers, ...sampleData].map(e => e.join(",")).join("\n");
     
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "template_input_tajil.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+    XLSX.writeFile(workbook, "template_input_tajil.xlsx");
   };
 
-  const exportToCSV = () => {
+  const exportToExcel = () => {
     const headers = ['No', 'Nama Donatur', 'Tanggal 1', 'Tanggal 2', 'Jenis Sumbangan'];
     const rows = donors.map(d => [d.no, d.name, d.date, d.date2 || '', d.contributionType]);
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "jadwal_tajil.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Donatur");
+    XLSX.writeFile(workbook, "jadwal_tajil.xlsx");
   };
 
   const exportToWord = () => {
@@ -594,11 +586,11 @@ export default function App() {
                 ref={fileInputRef} 
                 onChange={handleFileChange} 
                 className="hidden" 
-                accept=".csv,.xlsx,.xls"
+                accept=".xlsx,.xls"
               />
               <button 
                 onClick={handleUploadClick}
-                title="Upload CSV Data"
+                title="Upload Excel Data"
                 className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 <Upload className="w-5 h-5 text-blue-500" />
@@ -606,7 +598,7 @@ export default function App() {
               </button>
               <button 
                 onClick={downloadTemplate}
-                title="Download Template CSV"
+                title="Download Template Excel"
                 className="p-3 bg-blue-50 text-blue-500 rounded-2xl hover:bg-blue-100 transition-colors"
               >
                 <FileText className="w-5 h-5" />
@@ -629,7 +621,7 @@ export default function App() {
                 <Trash2 className="w-5 h-5" />
               </button>
               <button 
-                onClick={exportToCSV}
+                onClick={exportToExcel}
                 className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-colors"
               >
                 <FileSpreadsheet className="w-5 h-5 text-green-600" />
