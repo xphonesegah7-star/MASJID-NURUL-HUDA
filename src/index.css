@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  input[type="range"]::-webkit-slider-thumb {
+    @apply appearance-none w-4 h-4 bg-white border-2 border-[#10b981] rounded-full cursor-pointer shadow-sm;
+  }
+  
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background: white !important;
+    }
+    .print-only {
+      display: block !important;
+    }
+  }
+}
+
+.print-only {
+  display: none;
+}
