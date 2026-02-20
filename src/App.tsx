@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   FileText, 
   Printer, 
@@ -21,15 +21,16 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { MosqueInfo, PrintSettings, Donor } from './types';
 
+const STORAGE_KEY = 'jadwal_tajil_data';
+
 export default function App() {
-  // State for Mosque Info
+  // Initial States
   const [mosqueInfo, setMosqueInfo] = useState<MosqueInfo>({
     name: 'MESJID NURUL HUDA KAMPUNG GUNUNG SARI',
     year: '1447 HIJRIYAH',
     subtitle: 'JADWAL MEMBERI TA\'JIL BUKA PUASA',
   });
 
-  // State for Print Settings
   const [settings, setSettings] = useState<PrintSettings>({
     marginTop: 5,
     marginBottom: 5,
@@ -40,7 +41,6 @@ export default function App() {
     quality: 'TAJAM',
   });
 
-  // State for Donors
   const [donors, setDonors] = useState<Donor[]>([
     { 
       id: '1', 
@@ -68,20 +68,46 @@ export default function App() {
     },
   ]);
 
+  // Load from LocalStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.mosqueInfo) setMosqueInfo(parsed.mosqueInfo);
+        if (parsed.settings) setSettings(parsed.settings);
+        if (parsed.donors) setDonors(parsed.donors);
+      } catch (e) {
+        console.error('Failed to load data from localStorage', e);
+      }
+    }
+  }, []);
+
+  // Save to LocalStorage
+  useEffect(() => {
+    const data = { mosqueInfo, settings, donors };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }, [mosqueInfo, settings, donors]);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [isEditingMosque, setIsEditingMosque] = useState(false);
+  const [editingDonor, setEditingDonor] = useState<Donor | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredDonors = useMemo(() => {
     return donors.filter(d => 
       d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.date.toLowerCase().includes(searchQuery.toLowerCase())
+      d.date.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.contributionType.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [donors, searchQuery]);
 
   const handleAddDonor = () => {
     const newId = Math.random().toString(36).substr(2, 9);
+    const nextNo = donors.length > 0 ? Math.max(...donors.map(d => d.no)) + 1 : 1;
     setDonors([...donors, { 
       id: newId, 
-      no: donors.length + 1, 
+      no: nextNo, 
       name: 'Donatur Baru', 
       date: 'Tanggal Baru',
       date2: '',
@@ -93,10 +119,6 @@ export default function App() {
     setDonors(donors.filter(d => d.id !== id));
   };
 
-  const [isEditingMosque, setIsEditingMosque] = useState(false);
-  const [editingDonor, setEditingDonor] = useState<Donor | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handlePrint = () => {
     window.print();
   };
@@ -107,9 +129,35 @@ export default function App() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      alert(`File "${file.name}" terpilih. Fitur impor data akan segera hadir!`);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split('\n');
+      const newDonors: Donor[] = [];
+      
+      // Basic CSV parsing (assuming: No, Name, Date1, Date2, Type)
+      lines.slice(1).forEach((line) => {
+        const parts = line.split(',').map(p => p.trim());
+        if (parts.length >= 2) {
+          newDonors.push({
+            id: Math.random().toString(36).substr(2, 9),
+            no: parseInt(parts[0]) || (donors.length + newDonors.length + 1),
+            name: parts[1] || 'Unknown',
+            date: parts[2] || '',
+            date2: parts[3] || '',
+            contributionType: parts[4] || 'Makanan / Uang'
+          });
+        }
+      });
+
+      if (newDonors.length > 0) {
+        setDonors([...donors, ...newDonors]);
+        alert(`Berhasil mengimpor ${newDonors.length} data donatur.`);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleSaveDonor = () => {
@@ -119,35 +167,96 @@ export default function App() {
     }
   };
 
+  const exportToCSV = () => {
+    const headers = ['No', 'Nama Donatur', 'Tanggal 1', 'Tanggal 2', 'Jenis Sumbangan'];
+    const rows = donors.map(d => [d.no, d.name, d.date, d.date2 || '', d.contributionType]);
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "jadwal_tajil.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToWord = () => {
+    const html = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>Export</title></head>
+      <body>
+        <div style="text-align: center;">
+          <h2>SELAMAT MENUNAIKAN IBADAH PUASA ${mosqueInfo.year}</h2>
+          <h3>${mosqueInfo.subtitle}</h3>
+          <h2 style="color: #5c4033;">${mosqueInfo.name}</h2>
+        </div>
+        <table border="1" style="width: 100%; border-collapse: collapse; text-align: center;">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>NAMA</th>
+              <th>TANGGAL</th>
+              <th>JENIS SUMBANGAN</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${donors.map(d => `
+              <tr>
+                <td>${d.no}</td>
+                <td><b>${d.name}</b></td>
+                <td>${d.date}<br>${d.date2 || ''}</td>
+                <td>${d.contributionType}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+    
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "jadwal_tajil.doc");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 pb-12">
       {/* Print View (Hidden on Screen) */}
-      <div className="print-only p-4 space-y-12">
+      <div className="print-only p-4 space-y-16">
         {donors.map((donor) => (
-          <div key={donor.id} className="space-y-2">
-            <div className="text-center">
-              <h2 className="text-xl font-bold uppercase">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
-              <h2 className="text-xl font-bold uppercase">{mosqueInfo.subtitle}</h2>
-              <h2 className="text-xl font-bold uppercase text-slate-700">{mosqueInfo.name}</h2>
+          <div key={donor.id} className="break-inside-avoid">
+            <div className="text-center mb-1">
+              <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
+              <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">{mosqueInfo.subtitle}</h2>
+              <h2 className="text-[1.3rem] font-bold uppercase leading-tight text-[#5c4033]" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.2)' }}>{mosqueInfo.name}</h2>
             </div>
-            <table className="w-full border-collapse border border-black text-center font-serif">
+            <table className="w-full border-collapse border-[1.5px] border-black text-center font-serif text-[0.95rem]">
               <thead>
-                <tr>
-                  <th className="border border-black p-2 w-12">No</th>
-                  <th className="border border-black p-2">NAMA</th>
-                  <th className="border border-black p-2">TANGGAL</th>
-                  <th className="border border-black p-2">JENIS SUMBANGAN</th>
+                <tr className="border-b-[1.5px] border-black">
+                  <th className="border border-black p-1 w-12 font-bold">No</th>
+                  <th className="border border-black p-1 font-bold">NAMA</th>
+                  <th className="border border-black p-1 font-bold">TANGGAL</th>
+                  <th className="border border-black p-1 font-bold">JENIS SUMBANGAN</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td className="border border-black p-4">{donor.no}</td>
-                  <td className="border border-black p-4 font-bold">{donor.name}</td>
-                  <td className="border border-black p-4">
-                    <div>{donor.date}</div>
-                    {donor.date2 && <div>{donor.date2}</div>}
+                  <td className="border border-black p-3 align-middle">{donor.no}</td>
+                  <td className="border border-black p-3 font-bold align-middle uppercase">{donor.name}</td>
+                  <td className="border border-black p-3 align-middle">
+                    <div className="leading-tight">{donor.date}</div>
+                    {donor.date2 && <div className="leading-tight">{donor.date2}</div>}
                   </td>
-                  <td className="border border-black p-4">{donor.contributionType}</td>
+                  <td className="border border-black p-3 align-middle">{donor.contributionType}</td>
                 </tr>
               </tbody>
             </table>
@@ -473,11 +582,17 @@ export default function App() {
               >
                 <Trash2 className="w-5 h-5" />
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+              <button 
+                onClick={exportToCSV}
+                className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+              >
                 <FileSpreadsheet className="w-5 h-5 text-green-600" />
                 EXCEL
               </button>
-              <button className="flex items-center gap-2 px-6 py-3 bg-[#eff6ff] text-blue-600 rounded-2xl font-bold hover:bg-blue-100 transition-colors">
+              <button 
+                onClick={exportToWord}
+                className="flex items-center gap-2 px-6 py-3 bg-[#eff6ff] text-blue-600 rounded-2xl font-bold hover:bg-blue-100 transition-colors"
+              >
                 <FileType className="w-5 h-5" />
                 WORD
               </button>
