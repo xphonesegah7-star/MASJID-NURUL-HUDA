@@ -265,50 +265,84 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  const donorChunks = useMemo(() => {
+    const chunks = [];
+    const perPage = settings.donorsPerPage || 1;
+    for (let i = 0; i < donors.length; i += perPage) {
+      chunks.push(donors.slice(i, i + perPage));
+    }
+    return chunks;
+  }, [donors, settings.donorsPerPage]);
+
   return (
     <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 pb-12">
       {/* Print View (Hidden on Screen) */}
-      <div className="print-only p-4 space-y-16 font-serif">
-        {donors.map((donor) => (
-          <div key={donor.id} className="break-inside-avoid">
-            <div className="text-center mb-4">
-              <div className="text-2xl mb-2 font-serif">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
-              <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
-              <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">{mosqueInfo.subtitle}</h2>
-              <h2 className="text-[1.3rem] font-bold uppercase leading-tight text-[#5c4033]" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.2)' }}>{mosqueInfo.name}</h2>
+      <div className="print-only font-serif">
+        {donorChunks.map((chunk, pageIndex) => (
+          <div 
+            key={pageIndex} 
+            className="break-after-page relative"
+            style={{
+              paddingTop: `${settings.marginTop}mm`,
+              paddingBottom: `${settings.marginBottom}mm`,
+              paddingLeft: `${settings.marginLeft}mm`,
+              paddingRight: `${settings.marginRight}mm`,
+              minHeight: '297mm', // A4 Height
+              width: '210mm', // A4 Width
+              backgroundColor: 'white'
+            }}
+          >
+            <div 
+              style={{ 
+                transform: `scale(${settings.scale / 100})`, 
+                transformOrigin: 'top center',
+                width: '100%'
+              }}
+              className="space-y-12"
+            >
+              {chunk.map((donor) => (
+                <div key={donor.id} className="break-inside-avoid">
+                  <div className="text-center mb-4">
+                    <div className="text-2xl mb-2 font-serif">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+                    <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
+                    <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">{mosqueInfo.subtitle}</h2>
+                    <h2 className="text-[1.3rem] font-bold uppercase leading-tight text-[#5c4033]" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.2)' }}>{mosqueInfo.name}</h2>
+                  </div>
+                  <table className="w-full border-collapse border-[1.5px] border-black text-center font-serif text-[0.95rem]">
+                    <thead>
+                      <tr className="border-b-[1.5px] border-black">
+                        <th className="border border-black p-1 w-12 font-bold">No</th>
+                        <th className="border border-black p-1 font-bold">NAMA</th>
+                        <th className="border border-black p-1 font-bold">TANGGAL</th>
+                        <th className="border border-black p-1 font-bold">JENIS SUMBANGAN</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-black p-3 align-middle">{donor.no}</td>
+                        <td className="border border-black p-3 font-bold align-middle uppercase">{donor.name}</td>
+                        <td className="border border-black p-3 align-middle">
+                          {(() => {
+                            const dateParts = donor.date.split(' ');
+                            if (dateParts.length === 3) {
+                              return (
+                                <>
+                                  <div className="leading-tight">{dateParts[0]} {dateParts[1]}</div>
+                                  <div className="leading-tight">{dateParts[2]}</div>
+                                </>
+                              );
+                            }
+                            return <div className="leading-tight">{donor.date}</div>;
+                          })()}
+                          {donor.date2 && <div className="leading-tight">{donor.date2}</div>}
+                        </td>
+                        <td className="border border-black p-3 align-middle">{donor.contributionType}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             </div>
-            <table className="w-full border-collapse border-[1.5px] border-black text-center font-serif text-[0.95rem]">
-              <thead>
-                <tr className="border-b-[1.5px] border-black">
-                  <th className="border border-black p-1 w-12 font-bold">No</th>
-                  <th className="border border-black p-1 font-bold">NAMA</th>
-                  <th className="border border-black p-1 font-bold">TANGGAL</th>
-                  <th className="border border-black p-1 font-bold">JENIS SUMBANGAN</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="border border-black p-3 align-middle">{donor.no}</td>
-                  <td className="border border-black p-3 font-bold align-middle uppercase">{donor.name}</td>
-                  <td className="border border-black p-3 align-middle">
-                    {(() => {
-                      const dateParts = donor.date.split(' ');
-                      if (dateParts.length === 3) {
-                        return (
-                          <>
-                            <div className="leading-tight">{dateParts[0]} {dateParts[1]}</div>
-                            <div className="leading-tight">{dateParts[2]}</div>
-                          </>
-                        );
-                      }
-                      return <div className="leading-tight">{donor.date}</div>;
-                    })()}
-                    {donor.date2 && <div className="leading-tight">{donor.date2}</div>}
-                  </td>
-                  <td className="border border-black p-3 align-middle">{donor.contributionType}</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         ))}
       </div>
