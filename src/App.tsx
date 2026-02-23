@@ -527,7 +527,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* Top Cards Section */}
-        <div className="max-w-3xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
           {/* Letterhead Card */}
           <motion.div 
@@ -602,6 +602,48 @@ export default function App() {
             </div>
           </motion.div>
 
+          {/* Margin Settings Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <Layout className="w-6 h-6 text-[#10b981]" />
+              <h2 className="text-lg font-bold uppercase tracking-wide">Presisi Margin (A4 Full)</h2>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              {[
+                { label: 'Margin Atas', key: 'marginTop' },
+                { label: 'Margin Bawah', key: 'marginBottom' },
+                { label: 'Margin Kiri', key: 'marginLeft' },
+                { label: 'Margin Kanan', key: 'marginRight' },
+              ].map((m) => (
+                <div key={m.key}>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{m.label}</label>
+                    <span className="text-sm font-bold">{settings[m.key as keyof PrintSettings]}mm</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="50" 
+                    value={settings[m.key as keyof PrintSettings] as number}
+                    onChange={(e) => setSettings({...settings, [m.key]: parseInt(e.target.value)})}
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#10b981]"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+              <p className="text-xs text-emerald-700 font-medium leading-relaxed">
+                Gunakan pengaturan ini untuk menyesuaikan posisi cetak agar pas dengan kertas A4. 
+                Perubahan akan langsung terlihat pada mode pratinjau.
+              </p>
+            </div>
+          </motion.div>
         </div>
 
         {/* Table Section */}
