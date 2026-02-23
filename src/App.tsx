@@ -37,7 +37,7 @@ export default function App() {
     marginBottom: 5,
     marginLeft: 5,
     marginRight: 5,
-    scale: 1,
+    scale: 100,
     donorsPerPage: 4,
     quality: 'TAJAM',
   });
@@ -322,7 +322,7 @@ export default function App() {
                 transformOrigin: 'top center',
                 width: '100%'
               }}
-              className="space-y-12"
+              className="space-y-6"
             >
               {chunk.map((donor) => (
                 <div key={donor.id} className="break-inside-avoid">
@@ -330,37 +330,37 @@ export default function App() {
                     <div className="text-2xl mb-2 font-serif">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
                     <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">SELAMAT MENUNAIKAN IBADAH PUASA {mosqueInfo.year}</h2>
                     <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">{mosqueInfo.subtitle}</h2>
-                    <h2 className="text-[1.3rem] font-bold uppercase leading-tight text-[#5c4033]" style={{ textShadow: '1px 1px 1px rgba(0,0,0,0.2)' }}>{mosqueInfo.name}</h2>
+                    <h2 className="text-[1.1rem] font-bold uppercase leading-tight text-black">{mosqueInfo.name}</h2>
                   </div>
-                  <table className="w-full border-collapse border-[1.5px] border-black text-center font-serif text-[0.95rem]">
+                  <table className="w-full border-collapse border-2 border-black text-center font-serif text-[1rem]">
                     <thead>
-                      <tr className="border-b-[1.5px] border-black">
-                        <th className="border border-black p-1 w-12 font-bold">No</th>
-                        <th className="border border-black p-1 font-bold">NAMA</th>
-                        <th className="border border-black p-1 font-bold">TANGGAL</th>
-                        <th className="border border-black p-1 font-bold">JENIS SUMBANGAN</th>
+                      <tr className="border-b-2 border-black bg-slate-50/10">
+                        <th className="border-2 border-black p-2 w-[8%] font-bold">No</th>
+                        <th className="border-2 border-black p-2 w-[32%] font-bold">NAMA</th>
+                        <th className="border-2 border-black p-2 w-[25%] font-bold">TANGGAL</th>
+                        <th className="border-2 border-black p-2 w-[35%] font-bold">JENIS SUMBANGAN</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="border border-black p-3 align-middle">{donor.no}</td>
-                        <td className="border border-black p-3 font-bold align-middle uppercase">{donor.name}</td>
-                        <td className="border border-black p-3 align-middle">
+                        <td className="border-2 border-black p-4 align-middle">{donor.no}</td>
+                        <td className="border-2 border-black p-4 font-bold align-middle uppercase">{donor.name}</td>
+                        <td className="border-2 border-black p-4 align-middle">
                           {(() => {
                             const dateParts = donor.date.split(' ');
                             if (dateParts.length === 3) {
                               return (
                                 <>
-                                  <div className="leading-tight">{dateParts[0]} {dateParts[1]}</div>
-                                  <div className="leading-tight">{dateParts[2]}</div>
+                                  <div className="leading-tight font-bold">{dateParts[0]} {dateParts[1]}</div>
+                                  <div className="leading-tight font-bold">{dateParts[2]}</div>
                                 </>
                               );
                             }
-                            return <div className="leading-tight">{donor.date}</div>;
+                            return <div className="leading-tight font-bold">{donor.date}</div>;
                           })()}
-                          {donor.date2 && <div className="leading-tight">{donor.date2}</div>}
+                          {donor.date2 && <div className="leading-tight font-bold mt-1">{donor.date2}</div>}
                         </td>
-                        <td className="border border-black p-3 align-middle">{donor.contributionType}</td>
+                        <td className="border-2 border-black p-4 align-middle font-bold">{donor.contributionType}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -527,7 +527,7 @@ export default function App() {
         </AnimatePresence>
 
         {/* Top Cards Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="max-w-3xl mx-auto w-full">
           
           {/* Letterhead Card */}
           <motion.div 
@@ -567,77 +567,41 @@ export default function App() {
                   {mosqueInfo.subtitle}
                 </div>
               </div>
-            </div>
-          </motion.div>
 
-          {/* Margin Settings Card */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200"
-          >
-            <div className="flex items-center gap-3 mb-8">
-              <Layout className="w-6 h-6 text-[#10b981]" />
-              <h2 className="text-lg font-bold uppercase tracking-wide">Presisi Margin (A4 Full)</h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-              {[
-                { label: 'Margin Atas', key: 'marginTop' },
-                { label: 'Margin Bawah', key: 'marginBottom' },
-                { label: 'Margin Kiri', key: 'marginLeft' },
-                { label: 'Margin Kanan', key: 'marginRight' },
-              ].map((m) => (
-                <div key={m.key}>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{m.label}</label>
-                    <span className="text-sm font-bold">{settings[m.key as keyof PrintSettings]}mm</span>
-                  </div>
+              <div className="pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Skala (%)</label>
                   <input 
-                    type="range" 
-                    min="0" 
-                    max="50" 
-                    value={settings[m.key as keyof PrintSettings] as number}
-                    onChange={(e) => setSettings({...settings, [m.key]: parseInt(e.target.value)})}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#10b981]"
+                    type="number" 
+                    value={settings.scale}
+                    onChange={(e) => setSettings({...settings, scale: parseFloat(e.target.value)})}
+                    className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
                   />
                 </div>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-6 mt-8">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Skala (%)</label>
-                <input 
-                  type="number" 
-                  value={settings.scale}
-                  onChange={(e) => setSettings({...settings, scale: parseFloat(e.target.value)})}
-                  className="w-full bg-white border border-slate-200 p-3 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Donatur/Hal</label>
-                <input 
-                  type="number" 
-                  value={settings.donorsPerPage}
-                  onChange={(e) => setSettings({...settings, donorsPerPage: parseInt(e.target.value)})}
-                  className="w-full bg-white border border-slate-200 p-3 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Kualitas</label>
-                <select 
-                  value={settings.quality}
-                  onChange={(e) => setSettings({...settings, quality: e.target.value as 'TAJAM' | 'STANDAR'})}
-                  className="w-full bg-white border border-slate-200 p-3 rounded-xl font-bold uppercase text-sm tracking-widest focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 cursor-pointer"
-                >
-                  <option value="TAJAM">TAJAM</option>
-                  <option value="STANDAR">STANDAR</option>
-                </select>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Donatur/Hal</label>
+                  <input 
+                    type="number" 
+                    value={settings.donorsPerPage}
+                    onChange={(e) => setSettings({...settings, donorsPerPage: parseInt(e.target.value)})}
+                    className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Kualitas</label>
+                  <select 
+                    value={settings.quality}
+                    onChange={(e) => setSettings({...settings, quality: e.target.value as 'TAJAM' | 'STANDAR'})}
+                    className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold uppercase text-[10px] tracking-widest focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 cursor-pointer"
+                  >
+                    <option value="TAJAM">TAJAM</option>
+                    <option value="STANDAR">STANDAR</option>
+                  </select>
+                </div>
               </div>
             </div>
           </motion.div>
+
         </div>
 
         {/* Table Section */}
