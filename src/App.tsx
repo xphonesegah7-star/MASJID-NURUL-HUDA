@@ -93,6 +93,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditingMosque, setIsEditingMosque] = useState(false);
   const [editingDonor, setEditingDonor] = useState<Donor | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredDonors = useMemo(() => {
@@ -121,7 +122,10 @@ export default function App() {
   };
 
   const handlePrint = () => {
-    window.print();
+    setIsPreviewMode(true);
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   const handleUploadClick = () => {
@@ -275,13 +279,33 @@ export default function App() {
   }, [donors, settings.donorsPerPage]);
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] font-sans text-slate-800 pb-12">
-      {/* Print View (Hidden on Screen) */}
-      <div className="print-only font-serif">
+    <div className={`min-h-screen ${isPreviewMode ? 'bg-slate-800' : 'bg-[#f1f5f9]'} font-sans text-slate-800 pb-12`}>
+      {/* Preview Mode Overlay Controls */}
+      {isPreviewMode && (
+        <div className="fixed top-0 left-0 right-0 z-[200] bg-slate-900/90 backdrop-blur-md p-4 flex items-center justify-center gap-4 no-print shadow-2xl">
+          <button 
+            onClick={() => setIsPreviewMode(false)}
+            className="px-6 py-2 bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-600 transition-all flex items-center gap-2"
+          >
+            <ChevronRight className="w-4 h-4 rotate-180" />
+            KEMBALI KE EDITOR
+          </button>
+          <button 
+            onClick={() => window.print()}
+            className="px-8 py-2 bg-[#10b981] text-white rounded-xl font-bold hover:bg-[#059669] transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+          >
+            <Printer className="w-4 h-4" />
+            CETAK SEKARANG
+          </button>
+        </div>
+      )}
+
+      {/* Print View (Hidden on Screen unless isPreviewMode is true) */}
+      <div className={`${isPreviewMode ? 'flex flex-col items-center pt-24 gap-8 pb-24 overflow-y-auto h-screen' : 'print-only'} font-serif`}>
         {donorChunks.map((chunk, pageIndex) => (
           <div 
             key={pageIndex} 
-            className="break-after-page relative"
+            className={`${isPreviewMode ? 'shadow-2xl mb-8' : 'break-after-page'} relative`}
             style={{
               paddingTop: `${settings.marginTop}mm`,
               paddingBottom: `${settings.marginBottom}mm`,
@@ -348,7 +372,8 @@ export default function App() {
       </div>
 
       {/* Header */}
-      <header className="bg-[#1e293b] text-white px-6 py-4 flex items-center justify-between shadow-lg sticky top-0 z-50 no-print">
+      {!isPreviewMode && (
+        <header className="bg-[#1e293b] text-white px-6 py-4 flex items-center justify-between shadow-lg sticky top-0 z-50 no-print">
         <div className="flex items-center gap-3">
           <div className="bg-[#10b981] p-2 rounded-lg">
             <FileText className="w-6 h-6 text-white" />
@@ -363,8 +388,10 @@ export default function App() {
           Pratinjau
         </button>
       </header>
+      )}
 
-      <main className="max-w-7xl mx-auto p-6 space-y-8 no-print">
+      {!isPreviewMode && (
+        <main className="max-w-7xl mx-auto p-6 space-y-8 no-print">
         {/* Donor Edit Modal */}
         <AnimatePresence>
           {editingDonor && (
@@ -752,6 +779,7 @@ export default function App() {
           </div>
         </motion.div>
       </main>
+      )}
     </div>
   );
 }
