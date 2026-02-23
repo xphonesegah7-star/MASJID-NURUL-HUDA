@@ -295,17 +295,20 @@ export default function App() {
             className="px-8 py-2 bg-[#10b981] text-white rounded-xl font-bold hover:bg-[#059669] transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20"
           >
             <Printer className="w-4 h-4" />
-            CETAK SEKARANG
+            CETAK SEMUA HALAMAN ({donorChunks.length})
           </button>
+          <div className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+            Tip: Pilih "Save as PDF" di menu printer untuk menyimpan file
+          </div>
         </div>
       )}
 
       {/* Print View (Hidden on Screen unless isPreviewMode is true) */}
-      <div className={`${isPreviewMode ? 'flex flex-col items-center pt-24 gap-8 pb-24 overflow-y-auto h-screen' : 'print-only'} font-serif`}>
+      <div className={`${isPreviewMode ? 'flex flex-col items-center pt-24 gap-8 pb-24 overflow-y-auto h-screen bg-slate-800' : 'print-only'} font-serif print:block print:bg-white print:p-0 print:h-auto print:overflow-visible`}>
         {donorChunks.map((chunk, pageIndex) => (
           <div 
             key={pageIndex} 
-            className={`${isPreviewMode ? 'shadow-2xl mb-8' : 'break-after-page'} relative`}
+            className={`${isPreviewMode ? 'shadow-2xl mb-8' : ''} break-after-page relative print:shadow-none print:mb-0`}
             style={{
               paddingTop: `${settings.marginTop}mm`,
               paddingBottom: `${settings.marginBottom}mm`,
@@ -382,10 +385,10 @@ export default function App() {
         </div>
         <button 
           onClick={handlePrint}
-          className="bg-transparent border border-slate-500 hover:bg-slate-700 px-6 py-2 rounded-xl flex items-center gap-2 transition-all font-medium"
+          className="bg-[#10b981] hover:bg-[#059669] text-white px-6 py-2 rounded-xl flex items-center gap-2 transition-all font-bold shadow-lg shadow-emerald-500/20"
         >
           <Printer className="w-4 h-4" />
-          Pratinjau
+          Pratinjau & Cetak
         </button>
       </header>
       )}
@@ -567,38 +570,6 @@ export default function App() {
                   {mosqueInfo.subtitle}
                 </div>
               </div>
-
-              <div className="pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Skala (%)</label>
-                  <input 
-                    type="number" 
-                    value={settings.scale}
-                    onChange={(e) => setSettings({...settings, scale: parseFloat(e.target.value)})}
-                    className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Donatur/Hal</label>
-                  <input 
-                    type="number" 
-                    value={settings.donorsPerPage}
-                    onChange={(e) => setSettings({...settings, donorsPerPage: parseInt(e.target.value)})}
-                    className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Kualitas</label>
-                  <select 
-                    value={settings.quality}
-                    onChange={(e) => setSettings({...settings, quality: e.target.value as 'TAJAM' | 'STANDAR'})}
-                    className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold uppercase text-[10px] tracking-widest focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 cursor-pointer"
-                  >
-                    <option value="TAJAM">TAJAM</option>
-                    <option value="STANDAR">STANDAR</option>
-                  </select>
-                </div>
-              </div>
             </div>
           </motion.div>
 
@@ -609,9 +580,25 @@ export default function App() {
             transition={{ delay: 0.1 }}
             className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200"
           >
-            <div className="flex items-center gap-3 mb-8">
-              <Layout className="w-6 h-6 text-[#10b981]" />
-              <h2 className="text-lg font-bold uppercase tracking-wide">Presisi Margin (A4 Full)</h2>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Layout className="w-6 h-6 text-[#10b981]" />
+                <h2 className="text-lg font-bold uppercase tracking-wide">Presisi Margin (A4 Full)</h2>
+              </div>
+              <button 
+                onClick={() => setSettings({
+                  marginTop: 5,
+                  marginBottom: 5,
+                  marginLeft: 5,
+                  marginRight: 5,
+                  scale: 100,
+                  donorsPerPage: 4,
+                  quality: 'TAJAM'
+                })}
+                className="text-[10px] font-bold text-red-400 border border-red-100 px-3 py-1 rounded-lg hover:bg-red-50 transition-colors uppercase"
+              >
+                Reset
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-x-8 gap-y-6">
@@ -637,11 +624,43 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <div className="mt-8 p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-              <p className="text-xs text-emerald-700 font-medium leading-relaxed">
-                Gunakan pengaturan ini untuk menyesuaikan posisi cetak agar pas dengan kertas A4. 
-                Perubahan akan langsung terlihat pada mode pratinjau.
+
+            <div className="mt-8 pt-6 border-t border-slate-100 grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Skala (%)</label>
+                <input 
+                  type="number" 
+                  value={settings.scale}
+                  onChange={(e) => setSettings({...settings, scale: parseFloat(e.target.value)})}
+                  className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Donatur/Hal</label>
+                <input 
+                  type="number" 
+                  value={settings.donorsPerPage}
+                  onChange={(e) => setSettings({...settings, donorsPerPage: parseInt(e.target.value)})}
+                  className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-[#10b981]/20"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Kualitas</label>
+                <select 
+                  value={settings.quality}
+                  onChange={(e) => setSettings({...settings, quality: e.target.value as 'TAJAM' | 'STANDAR'})}
+                  className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl font-bold uppercase text-[10px] tracking-widest focus:outline-none focus:ring-2 focus:ring-[#10b981]/20 cursor-pointer"
+                >
+                  <option value="TAJAM">TAJAM</option>
+                  <option value="STANDAR">STANDAR</option>
+                </select>
+              </div>
+            </div>
+            <div className="mt-8 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-between">
+              <p className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider">
+                Pengaturan Tersimpan Otomatis
               </p>
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             </div>
           </motion.div>
         </div>
@@ -695,6 +714,13 @@ export default function App() {
               >
                 <Plus className="w-5 h-5" />
                 TAMBAH
+              </button>
+              <button 
+                onClick={handlePrint}
+                className="flex items-center gap-2 px-6 py-3 bg-[#10b981] text-white rounded-2xl font-bold hover:bg-[#059669] transition-all shadow-lg shadow-emerald-500/20"
+              >
+                <Printer className="w-5 h-5" />
+                CETAK SEMUA
               </button>
               <button 
                 onClick={() => {
